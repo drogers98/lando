@@ -48,18 +48,14 @@ Create proxies for each multisite in the appserver array in your `.lando.yml` fi
 proxy:
   appserver:
     - site1.lndo.site
-    - site2.lndo.s
+    - site2.lndo.site
 services:
   site1:
     type: mysql:5.7
     portforward: 33068
-    config:
-      confd: lando/mysql/conf.d
   site2:
     type: mysql:5.7
     portforward: 33069
-    config:
-      confd: .lando/mysql/conf.d
 ```
 
 ## 2. Configure each subsite's local.settings.php
@@ -77,12 +73,13 @@ $databases['default'] = array (
     'username' => 'mysql',
     'password' => 'password',
     'prefix' => '',
+    'host' => site1',
     'port' => 3306,
   )
 );
-// The only thing to add from the out-of-the-box Lando db is the special host for each subsite
-$databases['default']['default']['host'] = 'site1';
 ```
+
+The $databases configuration will be the same for all sites, withthe exception of 'host', which should match the name of the service for that site.
 
 ::: warning If you're on Acquia...
 You must specify $_Server['PWD']=DRUPAL_ROOT if you use Drush 9 on Acquia (this may apply to some other hosts as well). Update your main `sites/default/settings.php` to tell our local Drupal to use the `/settings/local.settings.php` within each subsite:
@@ -142,8 +139,15 @@ prod:
 
 I'm using drush8 against the cloud here by specifying that in the drush-script, since I've had issues trying to use drush9 and have no defined drush9 aliases, but that's purely a concern of working with Acquia Cloud.
 
+#### Drush use example
 
+##### Pulling down a database to a site locally
 
+- Running from desired site folder locally
+- `drush -Dssh.tty=0 @DRUSH_ALIAS --uri=YOUR_DESIRED_SITE1_URL sql:dump > LOCAL_dump.sql`
+- `lando db-import local_dump.sql --host site1`
+- `rm local_dump.sql`
+- `lando drush cr`
 
 
 <GuideFooter test="" original="" repo=""/>
